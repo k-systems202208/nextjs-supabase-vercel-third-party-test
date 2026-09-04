@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Validate GitHub setup script
+        shell: pwsh
+        run: |
+          $setupPath = (Resolve-Path "./scripts/setup-github.ps1").Path
+          $bytes = [System.IO.File]::ReadAllBytes($setupPath)
+          if (
+            $bytes.Length -lt 3 -or
+            $bytes[0] -ne 0xEF -or
+            $bytes[1] -ne 0xBB -or
+            $bytes[2] -ne 0xBF
+          ) {
+            Write-Error "scripts/setup-github.ps1 must be UTF-8 with BOM for Windows PowerShell 5.1 compatibility."
+            exit 1
+          }
+
+          $tokens = $null
+          $parseErrors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            $setupPath,
+            [ref]$tokens,
+            [ref]$parseErrors
+          ) | Out-Null
+
+          if ($parseErrors.Count -gt 0) {
+            $parseErrors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Diagnose template environment
+        run: npm run doctor
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Quality gate
+        run: npm run check
+
+      - name: Sampleless template smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf -- \
+            "app/(sample)/dashboard" \
+            "features/todos" \
+            "supabase/sample/todos.sql" \
+            "tests/sample.test.mjs" \
+            ".next"
+          npm run check
