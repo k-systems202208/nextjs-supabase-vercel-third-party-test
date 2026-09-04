@@ -3,8 +3,8 @@ import { PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Next.js + Supabase + Vercel Template",
-  description: "Reusable web application starter for Next.js, Supabase and Vercel.",
+  title: "Bookmarks Web App",
+  description: "Private bookmarks app built from the Next.js + Supabase + Vercel template.",
   manifest: "/manifest.webmanifest",
 };
 

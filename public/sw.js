@@ -1,4 +1,4 @@
-const CACHE_NAME = "nsv-template-v1";
+const CACHE_NAME = "bookmarks-app-v1";
 const PRECACHE = ["/", "/offline", "/manifest.webmanifest", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -23,7 +23,12 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   // 認証ページ・ユーザー固有データはキャッシュしません。
-  if (url.pathname.startsWith("/auth") || url.pathname.startsWith("/dashboard") || url.pathname.startsWith("/api")) {
+  if (
+    url.pathname.startsWith("/auth") ||
+    url.pathname.startsWith("/dashboard") ||
+    url.pathname.startsWith("/bookmarks") ||
+    url.pathname.startsWith("/api")
+  ) {
     return;
   }
 

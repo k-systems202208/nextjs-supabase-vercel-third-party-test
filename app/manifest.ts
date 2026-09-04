@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Next.js Supabase Vercel Template",
-    short_name: "NSV Template",
-    description: "Next.js / Supabase / Vercel reusable web application starter",
+    name: "Bookmarks Web App",
+    short_name: "Bookmarks",
+    description: "Private bookmarks app built with Next.js, Supabase and Vercel",
     start_url: "/",
     display: "standalone",
     background_color: "#f6f7f9",
