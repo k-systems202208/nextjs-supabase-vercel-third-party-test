@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
-const checks = [
+const included = [
   "Next.js 16 App Router / TypeScript",
   "Supabase SSR Cookie Auth",
-  "ログイン / サインアップ",
-  "削除可能なRLS付きTodo CRUDサンプル",
+  "利用者ごとのBookmarks CRUD",
+  "Row Level Securityによる所有者分離",
   "Installable PWA / Offline fallback",
-  "GitHub Actions CI / Vercel ready",
+  "GitHub Actions CI / Vercel deployment",
 ];
 
 export default function Home() {
@@ -16,32 +16,32 @@ export default function Home() {
   return (
     <main className="shell">
       <section className="hero">
-        <p className="eyebrow">WEB APP STARTER</p>
-        <h1>Next.js + Supabase + Vercel</h1>
+        <p className="eyebrow">THIRD-PARTY TEMPLATE TEST</p>
+        <h1>Bookmarks Web App</h1>
         <p className="lead">
-          認証・RLS・PWA・CIなどの共通基盤と、削除可能なTodo CRUDサンプルを分離したWebアプリテンプレートです。
+          Next.js + Supabase + Vercelテンプレートから、Todoサンプルを削除して作成した独自アプリです。
         </p>
 
         <div className={`status ${configured ? "ok" : "warn"}`}>
           <strong>Supabase:</strong>{" "}
           {configured
-            ? "環境変数が設定されています。認証とTodoサンプルを試せます。"
-            : ".env.local を作成して接続情報を設定してください。"}
+            ? "環境変数が設定されています。ログインしてBookmarksを利用できます。"
+            : ".env.local を設定すると認証とBookmarksを利用できます。"}
         </div>
 
         <div className="hero-actions">
-          <Link className="button primary" href={configured ? "/auth/login" : "/dashboard"}>
-            {configured ? "認証サンプルを開く" : "セットアップ状態を確認"}
+          <Link className="button primary" href={configured ? "/auth/login" : "/bookmarks"}>
+            {configured ? "ログイン" : "セットアップ状態を確認"}
           </Link>
-          <Link className="button secondary" href="/dashboard">Todo Dashboard</Link>
+          <Link className="button secondary" href="/bookmarks">Bookmarksを開く</Link>
         </div>
       </section>
 
       <section className="card">
         <h2>Included</h2>
         <ul>
-          {checks.map((check) => (
-            <li key={check}>{check}</li>
+          {included.map((item) => (
+            <li key={item}>{item}</li>
           ))}
         </ul>
       </section>
@@ -51,7 +51,7 @@ export default function Home() {
         <ol>
           <li><code>.env.example</code> を <code>.env.local</code> にコピー</li>
           <li>Supabase Project URL / Publishable Key を設定</li>
-          <li>Todoサンプルを試す場合だけ <code>supabase/sample/todos.sql</code> を SQL Editor で実行</li>
+          <li><code>supabase/migrations/20260904144500_create_bookmarks.sql</code> を適用</li>
           <li>Supabase Auth の Site URL / Redirect URLs を設定</li>
           <li><code>npm run check</code> で一括検証</li>
         </ol>
