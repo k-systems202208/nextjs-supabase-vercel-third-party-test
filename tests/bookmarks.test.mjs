@@ -4,6 +4,7 @@ import test from "node:test";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const schema = read("supabase/migrations/20260904144500_create_bookmarks.sql");
+const grants = read("supabase/migrations/20260904150000_tighten_bookmarks_grants.sql");
 const actions = read("features/bookmarks/actions.ts");
 const page = read("app/(app)/bookmarks/page.tsx");
 const serviceWorker = read("public/sw.js");
@@ -13,6 +14,7 @@ test("Todo sample is removed and Bookmarks feature is independent", () => {
     "app/(app)/bookmarks/page.tsx",
     "features/bookmarks/actions.ts",
     "supabase/migrations/20260904144500_create_bookmarks.sql",
+    "supabase/migrations/20260904150000_tighten_bookmarks_grants.sql",
   ]) {
     assert.equal(existsSync(new URL(`../${path}`, import.meta.url)), true, `${path} is missing`);
   }
@@ -30,11 +32,15 @@ test("Todo sample is removed and Bookmarks feature is independent", () => {
 test("bookmarks table is protected by ownership RLS", () => {
   assert.match(schema, /alter table public\.bookmarks enable row level security/i);
   assert.match(schema, /revoke all on table public\.bookmarks from anon/i);
-  assert.match(schema, /grant select, insert, update, delete on table public\.bookmarks to authenticated/i);
   assert.match(schema, /for select[\s\S]*auth\.uid\(\)[\s\S]*user_id/i);
   assert.match(schema, /for insert[\s\S]*with check[\s\S]*auth\.uid\(\)[\s\S]*user_id/i);
   assert.match(schema, /for update[\s\S]*using[\s\S]*with check/i);
   assert.match(schema, /for delete[\s\S]*auth\.uid\(\)[\s\S]*user_id/i);
+});
+
+test("authenticated table privileges are tightened to CRUD only", () => {
+  assert.match(grants, /revoke all on table public\.bookmarks from authenticated/i);
+  assert.match(grants, /grant select, insert, update, delete on table public\.bookmarks to authenticated/i);
 });
 
 test("bookmark actions validate input and keep owner filtering", () => {
