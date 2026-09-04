@@ -24,17 +24,37 @@
 app/(app)/bookmarks/page.tsx
 features/bookmarks/actions.ts
 supabase/migrations/20260904144500_create_bookmarks.sql
+supabase/migrations/20260904150000_tighten_bookmarks_grants.sql
+supabase/migrations/20260904150500_add_bookmarks_user_id_index.sql
 tests/bookmarks.test.mjs
 ```
 
-## 確認済みの注意点
+## Supabase実地確認
+
+テスト用Project `nextjs-bookmarks-third-party-test` を東京リージョンへ作成し、Repository内のMigrationを実際に適用した。
+
+確認結果:
+
+- `public.bookmarks` のRLS有効
+- `user_id -> auth.users(id)` FK有効
+- SELECT / INSERT / UPDATE / DELETEの所有者RLS Policyを確認
+- `anon` にはtable権限なし
+- `authenticated` はCRUD権限だけに限定
+- User A / User BをTransaction内で一時作成し、他ユーザー行の参照・更新・削除ができないことを実動確認
+- Security Advisorの指摘0件
+- FK index不足をPerformance Advisorで検出し、`bookmarks_user_id_idx` を追加
+- 作成直後のため、追加indexに対する `unused_index` INFOのみ残る。実データ未使用時は想定内
+
+## 実地テストで見つかった改善点
 
 - `Use this template` ではRepository Rulesetは引き継がれない。
 - `setup-github.ps1` 適用前はmainへの直接変更が技術的に可能なので、カスタマイズ開始前に安全設定を適用するのが重要。
 - ChatGPT GitHub連携をRepository限定にしている場合、新Repositoryを連携対象へ追加する必要がある。
+- Supabase新規tableでは、必要なCRUDをgrantする前に `authenticated` に対しても `revoke all` しないと、既定権限の `REFERENCES / TRIGGER / TRUNCATE` が残る場合がある。
+- ownership RLSで `user_id` を検索条件に使うtableでは、FKを作るだけでなくcovering indexも確認する。
 - private route `/bookmarks` はService Workerのキャッシュ対象外にする。
 - 独自READMEへ変更しても、Operations / Extending / GitHub Setupなど共通資料への導線を残す。
 
 ## 最終結果
 
-Supabase / Vercel / main CIまで完了後に追記します。
+GitHub Ruleset / Squash Merge / main CI / Vercel実Deployまで完了後に追記します。
