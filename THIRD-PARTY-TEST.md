@@ -16,7 +16,8 @@
 10. `Protect main` Rulesetを適用
 11. Squash Merge / main CIを確認
 12. Supabase実ProjectでSchema / RLS / Advisorを確認
-13. Vercelへ実Deployして動作確認
+13. Vercelへ実Deploy
+14. Production AuthのRedirectを固定 `/auth/confirm` へ調整
 
 ## 独自feature
 
@@ -45,6 +46,36 @@ tests/bookmarks.test.mjs
 - FK index不足をPerformance Advisorで検出し、`bookmarks_user_id_idx` を追加
 - 作成直後のため、追加indexに対する `unused_index` INFOのみ残る。実データ未使用時は想定内
 
+## GitHub / Vercel実地確認
+
+- 新Repositoryへ `Protect main` Rulesetを実際に適用
+- Required Checkは `quality`
+- PR #4をSquash Merge
+- merge後main CI Run #18成功
+- 作業Branchの自動削除を確認
+- Vercel Production URL: `https://nextjs-supabase-vercel-third-party.vercel.app`
+- merge済みmain SHAに対するGitHubのVercel deployment statusが `success`
+
+## Production Auth設定
+
+Vercel Productionでは次を設定する。
+
+```text
+NEXT_PUBLIC_SITE_URL=https://nextjs-supabase-vercel-third-party.vercel.app
+```
+
+Supabase **Authentication → URL Configuration**:
+
+```text
+Site URL:
+https://nextjs-supabase-vercel-third-party.vercel.app
+
+Additional Redirect URL:
+https://nextjs-supabase-vercel-third-party.vercel.app/auth/confirm
+```
+
+Productionの確認メール戻り先は `/auth/confirm` 固定とし、不必要に広いwildcardを使わない。
+
 ## 実地テストで見つかった改善点
 
 - `Use this template` ではRepository Rulesetは引き継がれない。
@@ -52,9 +83,28 @@ tests/bookmarks.test.mjs
 - ChatGPT GitHub連携をRepository限定にしている場合、新Repositoryを連携対象へ追加する必要がある。
 - Supabase新規tableでは、必要なCRUDをgrantする前に `authenticated` に対しても `revoke all` しないと、既定権限の `REFERENCES / TRIGGER / TRUNCATE` が残る場合がある。
 - ownership RLSで `user_id` を検索条件に使うtableでは、FKを作るだけでなくcovering indexも確認する。
+- Production Authでは `NEXT_PUBLIC_SITE_URL` とSupabase Site URL / Redirect URLを本番URLへ明示する。
 - private route `/bookmarks` はService Workerのキャッシュ対象外にする。
 - 独自READMEへ変更しても、Operations / Extending / GitHub Setupなど共通資料への導線を残す。
 
-## 最終結果
+## 最終確認
 
-GitHub Ruleset / Squash Merge / main CI / Vercel実Deployまで完了後に追記します。
+自動確認済み:
+
+- Todo削除後の独自Bookmarks実装
+- PR / mainの `quality` CI
+- Supabase実DB / RLS / 最小権限 / index / Advisor
+- GitHub Ruleset / Squash Merge
+- Vercel Production Deploy success
+
+Productionのブラウザ実操作では、次を最終確認する。
+
+```text
+/
+/api/health
+/auth/sign-up
+/auth/login
+/bookmarks
+```
+
+Sign up → 確認メール → Login → Bookmark追加 / 更新 / 削除まで通れば、第三者実地利用テスト完了とする。
