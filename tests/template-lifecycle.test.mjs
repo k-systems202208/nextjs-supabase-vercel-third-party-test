@@ -13,6 +13,7 @@ const githubSetup = read("docs/GITHUB-SETUP.md");
 const operations = read("docs/OPERATIONS.md");
 const extending = read("docs/EXTENDING.md");
 const smokeTest = read("docs/TEMPLATE-SMOKE-TEST.md");
+const proxyConfig = read("proxy.ts");
 
 test("developer doctor is part of the template contract", () => {
   assert.equal(existsSync(new URL("../scripts/doctor.mjs", import.meta.url)), true);
@@ -26,6 +27,10 @@ test("operations runbook uses the existing common health endpoint", () => {
   assert.match(operations, /\/api\/health/);
   assert.match(operations, /ロールバック/);
   assert.match(operations, /RLS/);
+});
+
+test("health endpoint is independent from the Supabase auth proxy", () => {
+  assert.match(proxyConfig, /\(\?!api\/health\|/);
 });
 
 test("extension guide keeps domain features outside the common core", () => {
