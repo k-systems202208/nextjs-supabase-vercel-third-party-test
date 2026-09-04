@@ -5,6 +5,7 @@ import test from "node:test";
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const schema = read("supabase/migrations/20260904144500_create_bookmarks.sql");
 const grants = read("supabase/migrations/20260904150000_tighten_bookmarks_grants.sql");
+const ownerIndex = read("supabase/migrations/20260904150500_add_bookmarks_user_id_index.sql");
 const actions = read("features/bookmarks/actions.ts");
 const page = read("app/(app)/bookmarks/page.tsx");
 const serviceWorker = read("public/sw.js");
@@ -15,6 +16,7 @@ test("Todo sample is removed and Bookmarks feature is independent", () => {
     "features/bookmarks/actions.ts",
     "supabase/migrations/20260904144500_create_bookmarks.sql",
     "supabase/migrations/20260904150000_tighten_bookmarks_grants.sql",
+    "supabase/migrations/20260904150500_add_bookmarks_user_id_index.sql",
   ]) {
     assert.equal(existsSync(new URL(`../${path}`, import.meta.url)), true, `${path} is missing`);
   }
@@ -41,6 +43,10 @@ test("bookmarks table is protected by ownership RLS", () => {
 test("authenticated table privileges are tightened to CRUD only", () => {
   assert.match(grants, /revoke all on table public\.bookmarks from authenticated/i);
   assert.match(grants, /grant select, insert, update, delete on table public\.bookmarks to authenticated/i);
+});
+
+test("bookmarks owner foreign key has a covering index", () => {
+  assert.match(ownerIndex, /create index if not exists bookmarks_user_id_idx on public\.bookmarks \(user_id\)/i);
 });
 
 test("bookmark actions validate input and keep owner filtering", () => {
