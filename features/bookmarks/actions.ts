@@ -2,6 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import {
+  addE2EBookmark,
+  deleteE2EBookmark,
+  updateE2EBookmark,
+} from "@/lib/e2e/bookmarks-store";
+import { isBrowserE2EMode } from "@/lib/e2e/mode";
 import { createClient } from "@/lib/supabase/server";
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -50,6 +56,13 @@ async function authenticatedClient() {
 export async function addBookmark(formData: FormData) {
   const name = normalizeName(formData.get("name"));
   const url = normalizeUrl(formData.get("url"));
+
+  if (isBrowserE2EMode()) {
+    addE2EBookmark(name, url);
+    revalidatePath("/bookmarks");
+    return;
+  }
+
   const { supabase, userId } = await authenticatedClient();
 
   const { error } = await supabase.from("bookmarks").insert({
@@ -74,6 +87,13 @@ export async function updateBookmark(formData: FormData) {
 
   const name = normalizeName(formData.get("name"));
   const url = normalizeUrl(formData.get("url"));
+
+  if (isBrowserE2EMode()) {
+    updateE2EBookmark(id, name, url);
+    revalidatePath("/bookmarks");
+    return;
+  }
+
   const { supabase, userId } = await authenticatedClient();
 
   const { error } = await supabase
@@ -94,6 +114,12 @@ export async function deleteBookmark(formData: FormData) {
   const id = typeof idValue === "string" ? idValue : "";
   if (!uuidPattern.test(id)) {
     redirect(bookmarksError("不正なBookmark IDです。"));
+  }
+
+  if (isBrowserE2EMode()) {
+    deleteE2EBookmark(id);
+    revalidatePath("/bookmarks");
+    return;
   }
 
   const { supabase, userId } = await authenticatedClient();
