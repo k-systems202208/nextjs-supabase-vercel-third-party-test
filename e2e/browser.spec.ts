@@ -19,7 +19,7 @@ test("auth forms accept real keyboard input and submit in E2E mode", async ({ pa
   expect(await signUpPassword.evaluate((element) => (element as HTMLInputElement).checkValidity())).toBe(false);
 
   await signUpPassword.fill("");
-  await signUpPassword.pressSequentially("BrowserE2E-Password-123!");
+  await signUpPassword.pressSequentially("abcdefghijk");
   await page.getByRole("button", { name: "アカウント作成" }).click();
 
   await expect(page).toHaveURL(/\/auth\/login\?message=/);
@@ -28,11 +28,11 @@ test("auth forms accept real keyboard input and submit in E2E mode", async ({ pa
   const loginEmail = page.getByLabel("メールアドレス");
   const loginPassword = page.getByLabel("パスワード", { exact: true });
   await loginEmail.pressSequentially("browser-e2e@example.com");
-  await loginPassword.pressSequentially("BrowserE2E-Password-123!");
+  await loginPassword.pressSequentially("abcdefghijk");
   await page.getByRole("button", { name: "ログイン" }).click();
 
   await expect(page).toHaveURL(/\/bookmarks$/);
-  await expect(page.getByRole("heading", { name: "Bookmarks" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Bookmarks", exact: true })).toBeVisible();
 });
 
 test("Bookmarks CRUD is operable entirely by browser typing and clicks", async ({ page }) => {
