@@ -1,7 +1,7 @@
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-function isHttpUrl(value: string | undefined) {
+function isHttpUrl(value: string | undefined): value is string {
   if (!value) return false;
 
   try {
